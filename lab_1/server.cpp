@@ -72,25 +72,13 @@ void ServerSubject::notify() {
 };
 
 class Server {
-    /* File descriptors for server and client */
-    int server_sock_fd;
-    int client_sock_fd;
-
-    /* Server & client addresses */
-    struct sockaddr_in server_addr;
-    struct sockaddr_in client_addr;
-    int server_port_nr { 32042 };
-
-    /* Message related variables */
-    socklen_t client_addr_len;
-    char message_buffer[MESSAGE_LENGTH];
-
     static void server_client_connection_service(int client_sock_fd) {
         Observer obs(ServerSubject::get_instance(), client_sock_fd);
 
         char message_buffer[MESSAGE_LENGTH];
 
         while(true) {
+            bzero(message_buffer, MESSAGE_LENGTH);
             int current_message_length = read(client_sock_fd, message_buffer, 255);
             if (current_message_length < 0) {
                 throw "ERROR reading from socket";
@@ -100,9 +88,6 @@ class Server {
         }
     }
 public:
-    Server() = default;
-    Server(int port_nr) :server_port_nr{ port_nr } {}
-
     static void server_listener_service() {
         /* File descriptors for server and client */
         int server_sock_fd;
@@ -135,7 +120,7 @@ public:
 
         while(true) {
             client_addr_len = sizeof(client_addr);
-            bzero(message_buffer, 256);
+            bzero(message_buffer, MESSAGE_LENGTH);
 
             client_sock_fd = accept(server_sock_fd, (struct sockaddr *) &client_addr, &client_addr_len);
             if (client_sock_fd < 0) {
@@ -148,7 +133,7 @@ public:
     }
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char * argv[]) {
     std::thread new_thread(&Server::server_listener_service);
 
     new_thread.join();

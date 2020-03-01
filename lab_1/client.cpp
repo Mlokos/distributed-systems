@@ -6,55 +6,81 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h> 
+#include <thread>
 
-void error(const char *msg)
-{
-    perror(msg);
-    exit(0);
-}
+#define MESSAGE_LENGTH 256
 
-int main(int argc, char *argv[])
-{
-    int sockfd, portno, n;
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
+class Client {
+public:
+    static int start_client_session() {
+        /* File descriptors for server and client */
+        int server_connection_sock_fd;
 
-    char buffer[256];
-    if (argc < 3) {
-       fprintf(stderr,"usage %s hostname port\n", argv[0]);
-       exit(0);
+        /* Server & client addresses */
+        struct sockaddr_in server_addr;
+        int server_port_nr { 32042 };
+
+        struct hostent * server;
+
+        server_connection_sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+        if (server_connection_sock_fd < 0) {
+            throw "ERROR opening socket";
+        }
+
+        server = gethostbyname("localhost");
+        if (server == NULL) {
+            throw "ERROR, no such host";
+        }
+
+        bzero((char *) &server_addr, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        bcopy((char *)server -> h_addr,
+            (char *)&server_addr.sin_addr.s_addr,
+            server -> h_length);
+        server_addr.sin_port = htons(server_port_nr);
+        if (connect(server_connection_sock_fd,(struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+            throw "ERROR connecting";
+        }
+
+        return server_connection_sock_fd;
     }
-    portno = atoi(argv[2]);
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) 
-        error("ERROR opening socket");
-    server = gethostbyname(argv[1]);
-    if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
-        exit(0);
-    }
-    bzero((char *) &serv_addr, sizeof(serv_addr));
-    serv_addr.sin_family = AF_INET;
-    bcopy((char *)server->h_addr, 
-         (char *)&serv_addr.sin_addr.s_addr,
-         server->h_length);
-    serv_addr.sin_port = htons(portno);
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
-        error("ERROR connecting");
+    static void client_send_message(int sockfd) {
+        char message_buffer[256];
+        int current_message_length;
+        while(true) {
+            bzero(message_buffer, 256);
+            fgets(message_buffer, 255, stdin);
 
-    while(true) {
-        printf("Please enter the message: ");
-        bzero(buffer,256);
-        fgets(buffer,255,stdin);
-        n = write(sockfd,buffer,strlen(buffer));
-        if (n < 0) 
-            error("ERROR writing to socket");
-        bzero(buffer,256);
-        n = read(sockfd,buffer,255);
-        if (n < 0) 
-            error("ERROR reading from socket");
-        printf("%s\n",buffer);
+            current_message_length = write(sockfd,message_buffer, strlen(message_buffer));
+            if (current_message_length < 0) {
+                throw "ERROR writing to socket";
+            }
+        }
     }
-    // close(sockfd);
+
+    static void client_read_message(int sockfd) {
+        char message_buffer[256];
+        int current_message_length;
+        while(true) {
+            bzero(message_buffer, 256);
+
+            current_message_length = read(sockfd, message_buffer, 255);
+            if (current_message_length < 0) {
+                throw "ERROR reading from socket";
+            }
+            printf("%s", message_buffer);
+        }
+    }
+};
+
+int main(int argc, char * argv[]) {
+    int sockfd = Client::start_client_session();
+
+    std::thread t1(&Client::client_send_message, sockfd);
+    std::thread t2(&Client::client_read_message, sockfd);
+
+    t1.join();
+    t2.join();
+
     return 0;
 }
