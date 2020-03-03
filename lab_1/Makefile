@@ -1,5 +1,5 @@
-build_server:
+server:
 	g++ server.cpp -pthread -o server.out
 
-build_client:
+client:
 	g++ client.cpp -pthread -o client.out

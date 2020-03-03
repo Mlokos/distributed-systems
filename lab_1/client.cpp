@@ -38,7 +38,7 @@ public:
             (char *)&server_addr.sin_addr.s_addr,
             server -> h_length);
         server_addr.sin_port = htons(server_port_nr);
-        if (connect(server_connection_sock_fd,(struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+        if (connect(server_connection_sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
             throw "ERROR connecting";
         }
 
@@ -73,14 +73,76 @@ public:
     }
 };
 
-int main(int argc, char * argv[]) {
-    int sockfd = Client::start_client_session();
+class ClientUDP {
+public:
+    static int start_client_session() {
+        /* File descriptors for server and client */
+        int server_connection_sock_fd;
 
-    std::thread t1(&Client::client_send_message, sockfd);
-    std::thread t2(&Client::client_read_message, sockfd);
+        server_connection_sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if(server_connection_sock_fd < 0) { 
+            throw "socket creation failed";
+        } 
+
+        return server_connection_sock_fd;
+    }
+    static void client_send_message(int sockfd) {
+        int server_port_nr { 32142 };
+        struct sockaddr_in servaddr;
+
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(server_port_nr);
+        servaddr.sin_addr.s_addr = INADDR_ANY; 
+
+        char message_buffer[256];
+        int current_message_length;
+
+        while(true) {
+            bzero(message_buffer, 256);
+            fgets(message_buffer, 255, stdin);
+
+            sendto(sockfd, (const char *)message_buffer, strlen(message_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
+        }
+    }
+
+    static void client_read_message(int sockfd) {
+        int server_port_nr { 32142 };
+        struct sockaddr_in servaddr;
+        socklen_t client_addr_len;
+
+        servaddr.sin_family = AF_INET; 
+        servaddr.sin_port = htons(server_port_nr); 
+        servaddr.sin_addr.s_addr = INADDR_ANY; 
+
+        char message_buffer[256];
+        int current_message_length;
+
+        while(true) {
+            bzero(message_buffer, 256);     
+            current_message_length = recvfrom(sockfd, (char *)message_buffer, MESSAGE_LENGTH, MSG_WAITALL, (struct sockaddr *) &servaddr, &client_addr_len); 
+            message_buffer[current_message_length] = '\0';
+            printf("%s", message_buffer);
+        }
+    }
+};
+
+int main(int argc, char * argv[]) {
+    // int sockfd = Client::start_client_session();
+
+    // std::thread t1(&Client::client_send_message, sockfd);
+    // std::thread t2(&Client::client_read_message, sockfd);
+
+    // t1.join();
+    // t2.join();
+
+    int sockfd = ClientUDP::start_client_session();
+
+    std::thread t1(&ClientUDP::client_send_message, sockfd);
+    std::thread t2(&ClientUDP::client_read_message, sockfd);
 
     t1.join();
     t2.join();
+
 
     return 0;
 }

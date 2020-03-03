@@ -7,6 +7,8 @@
  */
 #include <iostream>
 #include <vector>
+#include <set>
+#include <algorithm>
 
 #include <cstring>
 #include <unistd.h>
@@ -18,7 +20,7 @@
 
 class ServerSubject {
     std::vector <class Observer *> views;
-    char value_message_buffer[MESSAGE_LENGTH];
+    char message_buffer[MESSAGE_LENGTH];
     
 	ServerSubject() {}
 	static ServerSubject * s_instance;	
@@ -30,15 +32,15 @@ public:
 		return s_instance;      
 	}
 
-    void attach(Observer * obs) {
-        views.push_back(obs);
+    void attach(Observer * observer) {
+        views.push_back(observer);
     }
-    void set_val(char * val) {
-        strcpy(value_message_buffer, val);
+    void set_message(char * message) {
+        strcpy(message_buffer, message);
         notify();
     }
-    char * get_val() {
-        return value_message_buffer;
+    char * get_message() {
+        return message_buffer;
     }
     void notify();
 };
@@ -56,7 +58,7 @@ class Observer {
         client_sock_fd = constr_client_sock_fd;
     }
     void update() {
-        char * message = model -> get_val();
+        char * message = model -> get_message();
         int current_message_length;
 
         current_message_length = write(client_sock_fd, message, strlen(message));
@@ -71,7 +73,64 @@ void ServerSubject::notify() {
     views[i] -> update();
 };
 
-class Server {
+class ServerSubjectUDP {
+    std::vector <class ObserverUDP *> views;
+    char message_buffer[MESSAGE_LENGTH];
+    
+	ServerSubjectUDP() {}
+	static ServerSubjectUDP * s_udp_instance;	
+public:
+    static ServerSubjectUDP * get_instance() {
+        if(NULL == s_udp_instance) {
+            s_udp_instance = new ServerSubjectUDP();
+        }
+		return s_udp_instance;      
+	}
+
+    void attach(ObserverUDP * observer) {
+        views.push_back(observer);
+    }
+    void set_message(char * message) {
+        strcpy(message_buffer, message);
+        notify();
+    }
+    char * get_message() {
+        return message_buffer;
+    }
+    void notify();
+};
+
+ServerSubjectUDP * ServerSubjectUDP::s_udp_instance = 0;
+
+class ObserverUDP {
+    ServerSubjectUDP * model;
+    int client_sock_fd;
+    struct sockaddr_in client_addr;
+            
+  public:
+    ObserverUDP(ServerSubjectUDP * constr_model, int constr_client_sock_fd, struct sockaddr_in constr_client_addr) {
+        model = constr_model;
+        model -> attach(this);
+        client_sock_fd = constr_client_sock_fd;
+        client_addr = constr_client_addr;
+    }
+    void update() {
+        char * message = model -> get_message();
+        int current_message_length;
+
+        current_message_length = sendto(client_sock_fd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr *) &client_addr, sizeof(client_addr));
+        if (current_message_length < 0) {
+            throw "ERROR writing to socket";
+        }
+    }
+};
+
+void ServerSubjectUDP::notify() {
+  for (int i = 0; i < views.size(); i++)
+    views[i] -> update();
+};
+
+class ServerTCP {
     static void server_client_connection_service(int client_sock_fd) {
         Observer obs(ServerSubject::get_instance(), client_sock_fd);
 
@@ -83,8 +142,8 @@ class Server {
             if (current_message_length < 0) {
                 throw "ERROR reading from socket";
             }
-            ServerSubject::get_instance() -> set_val(message_buffer);
-            printf("Here is the message: %s\n",message_buffer);
+            ServerSubject::get_instance() -> set_message(message_buffer);
+            printf("Here is the message: %s",message_buffer);
         }
     }
 public:
@@ -133,8 +192,72 @@ public:
     }
 };
 
-int main(int argc, char * argv[]) {
-    std::thread new_thread(&Server::server_listener_service);
+class ServerUDP {
+public:
+    static void server_listener_service() {
+        /* File descriptors for server and client */
+        int server_sock_fd;
 
-    new_thread.join();
+        /* Server & client addresses */
+        struct sockaddr_in server_addr;
+        struct sockaddr_in client_addr;
+        int server_port_nr { 32142 };
+
+        /* Message related variables */
+        socklen_t client_addr_len;
+        char message_buffer[MESSAGE_LENGTH];
+
+        /* List of known UDP client addresses */
+        std::vector<struct sockaddr_in> client_addr_list;
+
+        server_sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if(server_sock_fd < 0) {
+            throw "ERROR opening socket";
+        }
+
+        bzero((char *) &server_addr, sizeof(server_addr));
+        server_addr.sin_family = AF_INET;
+        server_addr.sin_addr.s_addr = INADDR_ANY;
+        server_addr.sin_port = htons(server_port_nr);
+
+        if (bind(server_sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
+            throw "ERROR on binding";
+        }
+
+        int current_message_length;
+
+        bool is_found;
+        while(true) {
+            client_addr_len = sizeof(client_addr);
+            bzero(message_buffer, MESSAGE_LENGTH);
+
+            current_message_length = recvfrom(server_sock_fd, (char *)message_buffer, MESSAGE_LENGTH, MSG_WAITALL, ( struct sockaddr *) &client_addr, &client_addr_len); 
+            if (current_message_length < 0) {
+                throw "ERROR reading from socket";
+            }
+            message_buffer[current_message_length] = '\0';
+
+            is_found = false;
+            for(std::vector<struct sockaddr_in>::iterator it = client_addr_list.begin(); it != client_addr_list.end(); ++it) {
+                if((it -> sin_addr.s_addr == client_addr.sin_addr.s_addr) && (it -> sin_port == client_addr.sin_port)) {
+                    is_found = true;
+                }
+            }
+
+            if(is_found == false) {
+                client_addr_list.push_back(client_addr);
+                new ObserverUDP(ServerSubjectUDP::get_instance(), server_sock_fd, client_addr);
+            }
+
+            ServerSubjectUDP::get_instance() -> set_message(message_buffer);
+            printf("Client : %s\n", message_buffer); 
+        }
+    }
+};
+
+int main(int argc, char * argv[]) {
+    // std::thread tcp_service(&ServerTCP::server_listener_service);
+
+    // tcp_service.join();
+    ServerUDP::server_listener_service();
 }
