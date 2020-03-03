@@ -18,45 +18,49 @@
 
 #define MESSAGE_LENGTH 256
 
-class ServerSubject {
-    std::vector <class Observer *> views;
+class ServerSubjectTCP {
+    std::vector <class ObserverTCP *> views;
     char message_buffer[MESSAGE_LENGTH];
     
-	ServerSubject() {}
-	static ServerSubject * s_instance;	
+	ServerSubjectTCP() {}
+	static ServerSubjectTCP * s_instance;	
 public:
-    static ServerSubject * get_instance() {
+    static ServerSubjectTCP * get_instance() {
         if(NULL == s_instance) {
-            s_instance = new ServerSubject();
+            s_instance = new ServerSubjectTCP();
         }
 		return s_instance;      
 	}
 
-    void attach(Observer * observer) {
+    void attach(ObserverTCP * observer) {
         views.push_back(observer);
     }
+
     void set_message(char * message) {
         strcpy(message_buffer, message);
         notify();
     }
+
     char * get_message() {
         return message_buffer;
     }
+
     void notify();
 };
 
-ServerSubject * ServerSubject::s_instance = 0;
+ServerSubjectTCP * ServerSubjectTCP::s_instance = 0;
 
-class Observer {
-    ServerSubject * model;
+class ObserverTCP {
+    ServerSubjectTCP * model;
     int client_sock_fd;
             
   public:
-    Observer(ServerSubject * constr_model, int constr_client_sock_fd) {
+    ObserverTCP(ServerSubjectTCP * constr_model, int constr_client_sock_fd) {
         model = constr_model;
         model -> attach(this);
         client_sock_fd = constr_client_sock_fd;
     }
+
     void update() {
         char * message = model -> get_message();
         int current_message_length;
@@ -68,7 +72,7 @@ class Observer {
     }
 };
 
-void ServerSubject::notify() {
+void ServerSubjectTCP::notify() {
   for (int i = 0; i < views.size(); i++)
     views[i] -> update();
 };
@@ -90,13 +94,16 @@ public:
     void attach(ObserverUDP * observer) {
         views.push_back(observer);
     }
+
     void set_message(char * message) {
         strcpy(message_buffer, message);
         notify();
     }
+
     char * get_message() {
         return message_buffer;
     }
+
     void notify();
 };
 
@@ -114,6 +121,7 @@ class ObserverUDP {
         client_sock_fd = constr_client_sock_fd;
         client_addr = constr_client_addr;
     }
+
     void update() {
         char * message = model -> get_message();
         int current_message_length;
@@ -132,18 +140,20 @@ void ServerSubjectUDP::notify() {
 
 class ServerTCP {
     static void server_client_connection_service(int client_sock_fd) {
-        Observer obs(ServerSubject::get_instance(), client_sock_fd);
+        ObserverTCP obs(ServerSubjectTCP::get_instance(), client_sock_fd);
 
         char message_buffer[MESSAGE_LENGTH];
 
         while(true) {
             bzero(message_buffer, MESSAGE_LENGTH);
+
             int current_message_length = read(client_sock_fd, message_buffer, 255);
             if (current_message_length < 0) {
                 throw "ERROR reading from socket";
             }
-            ServerSubject::get_instance() -> set_message(message_buffer);
-            printf("Here is the message: %s",message_buffer);
+            
+            ServerSubjectTCP::get_instance() -> set_message(message_buffer);
+            printf("TCP message: %s", message_buffer);
         }
     }
 public:
@@ -250,14 +260,17 @@ public:
             }
 
             ServerSubjectUDP::get_instance() -> set_message(message_buffer);
-            printf("Client : %s\n", message_buffer); 
+            printf("UDP message: %s", message_buffer);
         }
     }
 };
 
 int main(int argc, char * argv[]) {
-    // std::thread tcp_service(&ServerTCP::server_listener_service);
+    std::thread tcp_service(&ServerTCP::server_listener_service);
+    std::thread udp_service(&ServerUDP::server_listener_service);
 
-    // tcp_service.join();
-    ServerUDP::server_listener_service();
+    tcp_service.join();
+    udp_service.join();
+
+    return 0;
 }

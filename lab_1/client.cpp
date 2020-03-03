@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <regex>
 
 #include <cstring>
 #include <unistd.h>
@@ -10,7 +11,7 @@
 
 #define MESSAGE_LENGTH 256
 
-class Client {
+class ClientTCP {
 public:
     static int start_client_session() {
         /* File descriptors for server and client */
@@ -34,9 +35,7 @@ public:
 
         bzero((char *) &server_addr, sizeof(server_addr));
         server_addr.sin_family = AF_INET;
-        bcopy((char *)server -> h_addr,
-            (char *)&server_addr.sin_addr.s_addr,
-            server -> h_length);
+        bcopy((char *)server -> h_addr, (char *)&server_addr.sin_addr.s_addr, server -> h_length);
         server_addr.sin_port = htons(server_port_nr);
         if (connect(server_connection_sock_fd, (struct sockaddr *) &server_addr, sizeof(server_addr)) < 0) {
             throw "ERROR connecting";
@@ -44,23 +43,11 @@ public:
 
         return server_connection_sock_fd;
     }
-    static void client_send_message(int sockfd) {
-        char message_buffer[256];
-        int current_message_length;
-        while(true) {
-            bzero(message_buffer, 256);
-            fgets(message_buffer, 255, stdin);
-
-            current_message_length = write(sockfd,message_buffer, strlen(message_buffer));
-            if (current_message_length < 0) {
-                throw "ERROR writing to socket";
-            }
-        }
-    }
 
     static void client_read_message(int sockfd) {
         char message_buffer[256];
         int current_message_length;
+
         while(true) {
             bzero(message_buffer, 256);
 
@@ -68,6 +55,7 @@ public:
             if (current_message_length < 0) {
                 throw "ERROR reading from socket";
             }
+
             printf("%s", message_buffer);
         }
     }
@@ -86,24 +74,6 @@ public:
 
         return server_connection_sock_fd;
     }
-    static void client_send_message(int sockfd) {
-        int server_port_nr { 32142 };
-        struct sockaddr_in servaddr;
-
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(server_port_nr);
-        servaddr.sin_addr.s_addr = INADDR_ANY; 
-
-        char message_buffer[256];
-        int current_message_length;
-
-        while(true) {
-            bzero(message_buffer, 256);
-            fgets(message_buffer, 255, stdin);
-
-            sendto(sockfd, (const char *)message_buffer, strlen(message_buffer), MSG_CONFIRM, (const struct sockaddr *) &servaddr, sizeof(servaddr));
-        }
-    }
 
     static void client_read_message(int sockfd) {
         int server_port_nr { 32142 };
@@ -118,31 +88,61 @@ public:
         int current_message_length;
 
         while(true) {
-            bzero(message_buffer, 256);     
+            bzero(message_buffer, 256);
+            
             current_message_length = recvfrom(sockfd, (char *)message_buffer, MESSAGE_LENGTH, MSG_WAITALL, (struct sockaddr *) &servaddr, &client_addr_len); 
             message_buffer[current_message_length] = '\0';
+            
             printf("%s", message_buffer);
         }
     }
 };
 
+class ClientParser {
+public:
+    static void client_send_message(int tcp_sockfd, int udp_sockfd) {
+        int udp_server_port_nr { 32142 };
+        struct sockaddr_in udp_server_addr;
+
+        udp_server_addr.sin_family = AF_INET;
+        udp_server_addr.sin_port = htons(udp_server_port_nr);
+        udp_server_addr.sin_addr.s_addr = INADDR_ANY; 
+
+        char message_buffer[256];
+        int current_message_length;
+
+        std::regex udp_message("/u .*");
+        std::regex multicast_message("/m .*");
+        
+        while(true) {
+            bzero(message_buffer, 256);
+            fgets(message_buffer, 255, stdin);
+
+            if(std::regex_search(message_buffer, udp_message)) {
+                sendto(udp_sockfd, (const char *)message_buffer, strlen(message_buffer), MSG_CONFIRM, (const struct sockaddr *) &udp_server_addr, sizeof(udp_server_addr));
+            } else if (std::regex_search(message_buffer, multicast_message)) {
+                /* TODO; implement code */
+            } else {
+                current_message_length = write(tcp_sockfd, message_buffer, strlen(message_buffer));
+                if (current_message_length < 0) {
+                    throw "ERROR writing to socket";
+                }
+            }
+        }
+    }
+};
+
 int main(int argc, char * argv[]) {
-    // int sockfd = Client::start_client_session();
+    int tcp_sockfd = ClientTCP::start_client_session();
+    int udp_sockfd = ClientUDP::start_client_session();
 
-    // std::thread t1(&Client::client_send_message, sockfd);
-    // std::thread t2(&Client::client_read_message, sockfd);
-
-    // t1.join();
-    // t2.join();
-
-    int sockfd = ClientUDP::start_client_session();
-
-    std::thread t1(&ClientUDP::client_send_message, sockfd);
-    std::thread t2(&ClientUDP::client_read_message, sockfd);
+    std::thread t1(&ClientTCP::client_read_message, tcp_sockfd);
+    std::thread t2(&ClientUDP::client_read_message, udp_sockfd);
+    std::thread t3(&ClientParser::client_send_message, tcp_sockfd, udp_sockfd);
 
     t1.join();
     t2.join();
-
+    t3.join();
 
     return 0;
 }
