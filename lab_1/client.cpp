@@ -76,7 +76,7 @@ public:
     }
 
     static void client_read_message(int sockfd) {
-        int server_port_nr { 32142 };
+        int server_port_nr { 32042 };
         struct sockaddr_in servaddr;
         socklen_t client_addr_len;
 
@@ -92,7 +92,7 @@ public:
             
             current_message_length = recvfrom(sockfd, (char *)message_buffer, MESSAGE_LENGTH, MSG_WAITALL, (struct sockaddr *) &servaddr, &client_addr_len); 
             message_buffer[current_message_length] = '\0';
-            
+
             printf("%s", message_buffer);
         }
     }
@@ -100,8 +100,8 @@ public:
 
 class ClientParser {
 public:
-    static void client_send_message(int tcp_sockfd, int udp_sockfd) {
-        int udp_server_port_nr { 32142 };
+    static void client_send_message(int tcp_sockfd, int udp_sockfd, std::string nickname) {
+        int udp_server_port_nr { 32042 };
         struct sockaddr_in udp_server_addr;
 
         udp_server_addr.sin_family = AF_INET;
@@ -113,16 +113,30 @@ public:
 
         std::regex udp_message("/u .*");
         std::regex multicast_message("/m .*");
+
+        std::string user_nickname = '[' + nickname + "] ";
+        std::string text_container;
         
         while(true) {
             bzero(message_buffer, 256);
             fgets(message_buffer, 255, stdin);
 
+            text_container = message_buffer;
+
             if(std::regex_search(message_buffer, udp_message)) {
+                text_container.erase(0, 3);
+                text_container = user_nickname + text_container;
+                bzero(message_buffer, 256);
+                strcpy(message_buffer, text_container.c_str());
+
                 sendto(udp_sockfd, (const char *)message_buffer, strlen(message_buffer), MSG_CONFIRM, (const struct sockaddr *) &udp_server_addr, sizeof(udp_server_addr));
             } else if (std::regex_search(message_buffer, multicast_message)) {
                 /* TODO; implement code */
             } else {
+                text_container = user_nickname + text_container;
+                bzero(message_buffer, 256);
+                strcpy(message_buffer, text_container.c_str());
+
                 current_message_length = write(tcp_sockfd, message_buffer, strlen(message_buffer));
                 if (current_message_length < 0) {
                     throw "ERROR writing to socket";
@@ -132,13 +146,35 @@ public:
     }
 };
 
+class Client {
+public:
+    static std::string generate_nickname() {
+        srand(time(NULL));
+        std::string user_nickname = "guest" + std::to_string(rand() % (int) 10e5);
+        
+        return user_nickname;
+    }
+    
+    static std::string generate_nickname(char * nickname) {
+        return nickname;
+    }
+};
+
 int main(int argc, char * argv[]) {
+    std::string user_nickname = Client::generate_nickname();
+
+    if(argc > 1) {
+        user_nickname = Client::generate_nickname(argv[1]);
+    } else {
+        user_nickname = Client::generate_nickname();
+    }
+
     int tcp_sockfd = ClientTCP::start_client_session();
     int udp_sockfd = ClientUDP::start_client_session();
 
     std::thread t1(&ClientTCP::client_read_message, tcp_sockfd);
     std::thread t2(&ClientUDP::client_read_message, udp_sockfd);
-    std::thread t3(&ClientParser::client_send_message, tcp_sockfd, udp_sockfd);
+    std::thread t3(&ClientParser::client_send_message, tcp_sockfd, udp_sockfd, user_nickname);
 
     t1.join();
     t2.join();

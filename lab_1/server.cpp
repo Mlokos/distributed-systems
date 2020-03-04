@@ -2,6 +2,7 @@
  * Gratitude to:
  * https://www.linuxhowtos.org/C_C++/socket.htm
  * https://sourcemaking.com/design_patterns/observer/cpp/3
+ * https://www.cs.unc.edu/~jeffay/dirt/FAQ/comp249-001-F99/mcast-socket.html
  * 
  * https://stackoverflow.com/questions/14027426/stdthread-for-class-instances#14027482
  */
@@ -151,7 +152,7 @@ class ServerTCP {
             if (current_message_length < 0) {
                 throw "ERROR reading from socket";
             }
-            
+
             ServerSubjectTCP::get_instance() -> set_message(message_buffer);
             printf("TCP message: %s", message_buffer);
         }
@@ -211,7 +212,7 @@ public:
         /* Server & client addresses */
         struct sockaddr_in server_addr;
         struct sockaddr_in client_addr;
-        int server_port_nr { 32142 };
+        int server_port_nr { 32042 };
 
         /* Message related variables */
         socklen_t client_addr_len;
