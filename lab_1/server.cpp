@@ -37,16 +37,16 @@ public:
         views.push_back(observer);
     }
 
-    void set_message(char * message) {
+    void set_message(char * message, int msg_sock_fd) {
         strcpy(message_buffer, message);
-        notify();
+        notify(msg_sock_fd);
     }
 
     char * get_message() {
         return message_buffer;
     }
 
-    void notify();
+    void notify(int msg_sock_fd);
 };
 
 ServerSubjectTCP * ServerSubjectTCP::s_instance = 0;
@@ -62,20 +62,23 @@ class ObserverTCP {
         client_sock_fd = constr_client_sock_fd;
     }
 
-    void update() {
-        char * message = model -> get_message();
-        int current_message_length;
+    void update(int msg_sock_fd) {
+        /* do not send a message to sender */
+        if(!(client_sock_fd == msg_sock_fd)) {
+            char * message = model -> get_message();
+            int current_message_length;
 
-        current_message_length = write(client_sock_fd, message, strlen(message));
-        if (current_message_length < 0) {
-            throw "ERROR writing to socket";
+            current_message_length = write(client_sock_fd, message, strlen(message));
+            if (current_message_length < 0) {
+                throw "ERROR writing to socket";
+            }
         }
     }
 };
 
-void ServerSubjectTCP::notify() {
+void ServerSubjectTCP::notify(int msg_sock_fd) {
   for (int i = 0; i < views.size(); i++)
-    views[i] -> update();
+    views[i] -> update(msg_sock_fd);
 };
 
 class ServerSubjectUDP {
@@ -96,16 +99,16 @@ public:
         views.push_back(observer);
     }
 
-    void set_message(char * message) {
+    void set_message(char * message, struct sockaddr_in client_addr) {
         strcpy(message_buffer, message);
-        notify();
+        notify(client_addr);
     }
 
     char * get_message() {
         return message_buffer;
     }
 
-    void notify();
+    void notify(struct sockaddr_in client_addr);
 };
 
 ServerSubjectUDP * ServerSubjectUDP::s_udp_instance = 0;
@@ -123,20 +126,23 @@ class ObserverUDP {
         client_addr = constr_client_addr;
     }
 
-    void update() {
-        char * message = model -> get_message();
-        int current_message_length;
+    void update(struct sockaddr_in msg_client_addr) {
+        /* do not send a message to sender */
+        if(!((msg_client_addr.sin_addr.s_addr == client_addr.sin_addr.s_addr) && (msg_client_addr.sin_port == client_addr.sin_port))) {
+            char * message = model -> get_message();
+            int current_message_length;
 
-        current_message_length = sendto(client_sock_fd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr *) &client_addr, sizeof(client_addr));
-        if (current_message_length < 0) {
-            throw "ERROR writing to socket";
+            current_message_length = sendto(client_sock_fd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr *) &client_addr, sizeof(client_addr));
+            if (current_message_length < 0) {
+                throw "ERROR writing to socket";
+            }
         }
     }
 };
 
-void ServerSubjectUDP::notify() {
+void ServerSubjectUDP::notify(struct sockaddr_in client_addr) {
   for (int i = 0; i < views.size(); i++)
-    views[i] -> update();
+    views[i] -> update(client_addr);
 };
 
 class ServerTCP {
@@ -153,7 +159,7 @@ class ServerTCP {
                 throw "ERROR reading from socket";
             }
 
-            ServerSubjectTCP::get_instance() -> set_message(message_buffer);
+            ServerSubjectTCP::get_instance() -> set_message(message_buffer, client_sock_fd);
             printf("TCP message: %s", message_buffer);
         }
     }
@@ -260,7 +266,7 @@ public:
                 new ObserverUDP(ServerSubjectUDP::get_instance(), server_sock_fd, client_addr);
             }
 
-            ServerSubjectUDP::get_instance() -> set_message(message_buffer);
+            ServerSubjectUDP::get_instance() -> set_message(message_buffer, client_addr);
             printf("UDP message: %s", message_buffer);
         }
     }
