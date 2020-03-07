@@ -2,4 +2,4 @@ server:
 	g++ server.cpp -pthread -o server.out
 
 client:
-	g++ client.cpp -pthread -o client.out
+	g++ client_instance.cpp client.cpp -pthread -o client.out
