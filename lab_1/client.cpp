@@ -1,3 +1,9 @@
+/**
+ * Gratitude to:
+ * http://ntrg.cs.tcd.ie/undergrad/4ba2/multicast/antony/example.html
+ * 
+ * Also, make sure you have disabled your firewall to be able to receive multicast messages
+ */
 #include <iostream>
 #include <vector>
 #include <regex>
@@ -8,6 +14,7 @@
 #include <netinet/in.h>
 #include <netdb.h> 
 #include <thread>
+#include <arpa/inet.h>
 
 #define MESSAGE_LENGTH 256
 
@@ -98,15 +105,93 @@ public:
     }
 };
 
+class ClientMulticast {
+public:
+    static int start_client_session() {
+        /* File descriptors for server and client */
+        int multicast_connection_sock_fd;
+
+        /* Server & client addresses */
+        struct sockaddr_in multicast_addr;
+        int multicast_port_nr { 32142 };
+        
+        struct ip_mreq multicast_request;
+        u_int yes = 1;
+
+        /* create what looks like an ordinary UDP socket */
+        multicast_connection_sock_fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if(multicast_connection_sock_fd < 0) {
+            throw "ERROR opening socket";
+        }
+
+        /* allow multiple sockets to use the same PORT number */
+        if(setsockopt(multicast_connection_sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
+            throw "Reusing ADDR failed";
+        }
+
+        /* set up destination address */
+        memset(&multicast_addr, 0, sizeof(multicast_addr));
+        multicast_addr.sin_family = AF_INET;
+        multicast_addr.sin_addr.s_addr = htonl(INADDR_ANY); /* N.B.: differs from sender */
+        multicast_addr.sin_port = htons(multicast_port_nr);
+
+        /* bind to receive address */
+        if(bind(multicast_connection_sock_fd, (struct sockaddr *) &multicast_addr, sizeof(multicast_addr)) < 0) {
+            throw "ERROR on binding";
+        }
+        
+        // /* use setsockopt() to request that the kernel join a multicast group */
+        // inet_pton(AF_INET, "localhost", &multicast_request.imr_multiaddr.s_addr);
+        // // multicast_request.imr_multiaddr.s_addr = inet_addr("localhost");
+        // multicast_request.imr_interface.s_addr = htonl(INADDR_ANY);
+        // if (setsockopt(multicast_connection_sock_fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &multicast_request, sizeof(multicast_request)) < 0) {
+        //     throw "ERROR on multicast kernel request";
+        // }
+
+        return multicast_connection_sock_fd;
+    }
+
+    static void client_read_message(int sockfd) {
+        int server_port_nr { 32142 };
+        struct sockaddr_in multicast_addr;
+        socklen_t multicast_addr_len;
+
+        multicast_addr.sin_family = AF_INET; 
+        multicast_addr.sin_port = htons(server_port_nr); 
+        multicast_addr.sin_addr.s_addr = INADDR_ANY; 
+
+        char message_buffer[256];
+        int current_message_length;
+
+        while(true) {
+            bzero(message_buffer, 256);
+
+            current_message_length = recvfrom(sockfd, message_buffer, MESSAGE_LENGTH, 0, (struct sockaddr *) &multicast_addr, &multicast_addr_len);
+            if (current_message_length < 0) {
+                throw "ERROR reading from socket";
+            }
+
+            printf("%s", message_buffer);
+        }
+    }
+};
+
 class ClientParser {
 public:
-    static void client_send_message(int tcp_sockfd, int udp_sockfd, std::string nickname) {
+    static void client_send_message(int tcp_sockfd, int udp_sockfd, int multicast_sockfd, std::string nickname) {
         int udp_server_port_nr { 32042 };
         struct sockaddr_in udp_server_addr;
 
         udp_server_addr.sin_family = AF_INET;
         udp_server_addr.sin_port = htons(udp_server_port_nr);
-        udp_server_addr.sin_addr.s_addr = INADDR_ANY; 
+        udp_server_addr.sin_addr.s_addr = INADDR_ANY;
+
+        int multicast_port_nr { 32142 };
+        struct sockaddr_in multicast_addr;
+
+        multicast_addr.sin_family = AF_INET;
+        multicast_addr.sin_port = htons(multicast_port_nr);
+        multicast_addr.sin_addr.s_addr = INADDR_ANY; 
 
         char message_buffer[256];
         int current_message_length;
@@ -131,7 +216,14 @@ public:
 
                 sendto(udp_sockfd, (const char *)message_buffer, strlen(message_buffer), MSG_CONFIRM, (const struct sockaddr *) &udp_server_addr, sizeof(udp_server_addr));
             } else if (std::regex_search(message_buffer, multicast_message)) {
-                /* TODO; implement code */
+                text_container.erase(0, 3);
+                text_container = user_nickname + text_container;
+                bzero(message_buffer, 256);
+                strcpy(message_buffer, text_container.c_str());
+
+                if(sendto(multicast_sockfd, (const char *)message_buffer, strlen(message_buffer), 0, (struct sockaddr *) &multicast_addr, sizeof(multicast_addr)) < 0) {
+                    throw "ERROR writing to socket";
+                }
             } else {
                 text_container = user_nickname + text_container;
                 bzero(message_buffer, 256);
@@ -171,14 +263,17 @@ int main(int argc, char * argv[]) {
 
     int tcp_sockfd = ClientTCP::start_client_session();
     int udp_sockfd = ClientUDP::start_client_session();
+    int multicast_sockfd = ClientMulticast::start_client_session();
 
     std::thread t1(&ClientTCP::client_read_message, tcp_sockfd);
     std::thread t2(&ClientUDP::client_read_message, udp_sockfd);
-    std::thread t3(&ClientParser::client_send_message, tcp_sockfd, udp_sockfd, user_nickname);
+    std::thread t3(&ClientMulticast::client_read_message, multicast_sockfd);
+    std::thread t4(&ClientParser::client_send_message, tcp_sockfd, udp_sockfd, multicast_sockfd, user_nickname);
 
     t1.join();
     t2.join();
     t3.join();
+    t4.join();
 
     return 0;
 }
