@@ -1,7 +1,7 @@
 #include "client.hpp"
 
 int main(int argc, char * argv[]) {
-    std::string user_nickname = Client::generate_nickname();
+    std::string user_nickname;
 
     if(argc > 1) {
         user_nickname = Client::generate_nickname(argv[1]);
