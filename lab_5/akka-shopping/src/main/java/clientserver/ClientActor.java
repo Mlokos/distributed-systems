@@ -14,8 +14,8 @@ public class ClientActor extends AbstractActor {
 		return receiveBuilder()
 				.match(String.class, query -> {
 					context()
-						.actorSelection("akka://shopping_system/user/server_actor")
-						.tell("hello", getSelf());
+						.actorSelection("/user/server_actor")
+						.tell(query, getSelf());
 				})
 				.matchAny(o -> log.info("Received non-String message"))
 				.build();
