@@ -1,8 +1,6 @@
 package clientserver;
 
 import akka.actor.AbstractActor;
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
@@ -19,8 +17,9 @@ public class ServerActor extends AbstractActor {
 	public AbstractActor.Receive createReceive() {
 		return receiveBuilder()
 				.match(String.class, query -> {
+					/** DEBUG */
 					System.out.println(self());
-					System.out.println(query);
+					
 					/** Create unique actor */
 					context().actorOf(Props.create(ServerClientWorker.class), "server_client_worker" + clientCounter);
 					context().child("server_client_worker" + clientCounter).get().tell(query, getSelf());

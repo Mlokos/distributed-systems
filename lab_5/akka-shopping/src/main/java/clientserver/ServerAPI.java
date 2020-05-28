@@ -9,10 +9,9 @@ public class ServerAPI {
 		final ActorSystem system = ActorSystem.create("shopping_system");
 		final ActorRef serverActor = system.actorOf(Props.create(ServerActor.class), "server_actor");
 	
-//		serverActor.tell("hi", null);
-		
+		/** DEBUG */
 		while(true) {
-//			serverActor.tell("hi", null);
+			serverActor.tell("hi", null);
 			Thread.sleep(2000);
 		}
 	}

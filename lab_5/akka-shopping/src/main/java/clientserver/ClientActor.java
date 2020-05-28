@@ -13,9 +13,8 @@ public class ClientActor extends AbstractActor {
 	public AbstractActor.Receive createReceive() {
 		return receiveBuilder()
 				.match(String.class, query -> {
-					System.out.println(self());
 					context()
-						.actorSelection("akka://shopping_system/user/server_actora")
+						.actorSelection("akka://shopping_system/user/server_actor/*")
 						.tell("hello", getSelf());
 				})
 				.matchAny(o -> log.info("Received non-String message"))

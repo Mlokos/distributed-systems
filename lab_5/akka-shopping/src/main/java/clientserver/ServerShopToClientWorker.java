@@ -3,7 +3,6 @@ package clientserver;
 import java.util.Random;
 
 import akka.actor.AbstractActor;
-import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 

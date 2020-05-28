@@ -14,15 +14,13 @@ public class ClientAPI {
 
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
-        	Thread.sleep(1000);
-        	System.out.println(".");
-//            String line = br.readLine();
-//            if (line.equals("q")) {
-//                break;
-//            }
-            actor.tell("asdf", null);
+            String line = br.readLine();
+            if (line.equals("q")) {
+                break;
+            }
+            actor.tell(line, null);
         }
 
-//        system.terminate();
+        system.terminate();
     }
 }
