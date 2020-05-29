@@ -33,52 +33,34 @@ public class ServerClientWorker extends AbstractActor {
 						/** Create unique actor */
 						context().actorOf(Props.create(ServerShopToClientWorker.class), "server_shop_to_client_worker" + clientCounter + "" + i);
 					}
+					
+					List<CompletableFuture<Object>> compeltableFutureList = new LinkedList<CompletableFuture<Object>>();
+					for(int i = 0; i < SHOPS_QUAN; ++i) {
+						compeltableFutureList.add(ask(context().child("server_shop_to_client_worker" + clientCounter + "" + i).get(), query, Duration.ofMillis(300)).toCompletableFuture());
+					}
 
-					CompletableFuture<Object> future1 =
-							ask(context().child("server_shop_to_client_worker" + clientCounter + "0").get(), query, Duration.ofMillis(300)).toCompletableFuture();
-					CompletableFuture<Object> future2 =
-							ask(context().child("server_shop_to_client_worker" + clientCounter + "1").get(), query, Duration.ofMillis(300)).toCompletableFuture();
-					CompletableFuture<Object> future3 =
-							ask(context().child("server_shop_to_client_worker" + clientCounter + "2").get(), query, Duration.ofMillis(300)).toCompletableFuture();
+					List<Thread> threadList = new LinkedList<Thread>();
+					for(CompletableFuture<Object> cf : compeltableFutureList) {
+						threadList.add(
+							new Thread() {
+								public void run() {
+									try {
+						            	shopResponseList.add((ShopResponse) cf.get());
+									} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
+								}
+							}
+						);
+					}
 					
-					Thread t1 = new Thread() {
-						public void run() {
-							try {
-								ShopResponse x1 = (ShopResponse) future1.get();
-				            	shopResponseList.add(x1);
-//								System.out.println("*");
-							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
-						}
-					};
-					t1.start();
+					for(Thread t : threadList) {
+						t.start();
+					}
 					
-					Thread t2 = new Thread() {
-						public void run() {
-							try {
-								ShopResponse x2 = (ShopResponse) future2.get();
-				            	shopResponseList.add(x2);
-//								System.out.println("**");
-							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
-						}
-					};
-					t2.start();
-					
-					Thread t3 = new Thread() {
-						public void run() {
-							try {
-								ShopResponse x3 = (ShopResponse) future3.get();
-				            	shopResponseList.add(x3);
-//								System.out.println("***");
-							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
-						}
-					};
-					t3.start();
-					
-					t1.join();
-					t2.join();
-					t3.join();
+					for(Thread t : threadList) {
+						t.join();
+					}
 	            	
-					/** java comparator does not work for me */
+					/** WORKAROUND - java comparator does not work for me */
 					int lowestValue = 10;
 	            	for(ShopResponse sr : shopResponseList) {
 	            		if(sr.getValue() < lowestValue) {

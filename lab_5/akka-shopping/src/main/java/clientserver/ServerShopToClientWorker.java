@@ -16,7 +16,7 @@ public class ServerShopToClientWorker extends AbstractActor {
 		return receiveBuilder()
 				.match(String.class, query -> {
 					Random rand = new Random();
-					/** Sleep 100 to 500 ms*/
+					/** Sleep 100 to 500 milliseconds */
 					Thread.sleep(100 + rand.nextInt(400));
 					
 					/** Send a number in range 0 - 9 */
