@@ -11,7 +11,6 @@ import akka.actor.Props;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import static akka.pattern.Patterns.ask;
-import static akka.pattern.Patterns.pipe;
 
 public class ServerClientWorker extends AbstractActor {
 	private List<ShopResponse> shopResponseList = new LinkedList<ShopResponse>();
@@ -47,7 +46,7 @@ public class ServerClientWorker extends AbstractActor {
 							try {
 								ShopResponse x1 = (ShopResponse) future1.get();
 				            	shopResponseList.add(x1);
-								System.out.println("*");
+//								System.out.println("*");
 							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
 						}
 					};
@@ -58,7 +57,7 @@ public class ServerClientWorker extends AbstractActor {
 							try {
 								ShopResponse x2 = (ShopResponse) future2.get();
 				            	shopResponseList.add(x2);
-								System.out.println("**");
+//								System.out.println("**");
 							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
 						}
 					};
@@ -69,7 +68,7 @@ public class ServerClientWorker extends AbstractActor {
 							try {
 								ShopResponse x3 = (ShopResponse) future3.get();
 				            	shopResponseList.add(x3);
-								System.out.println("***");
+//								System.out.println("***");
 							} catch (InterruptedException | ExecutionException e) { /** Swallow */ }
 						}
 					};
@@ -79,10 +78,20 @@ public class ServerClientWorker extends AbstractActor {
 					t2.join();
 					t3.join();
 	            	
+					/** java comparator does not work for me */
+					int lowestValue = 10;
 	            	for(ShopResponse sr : shopResponseList) {
-						System.out.println(sr.getValue());
+	            		if(sr.getValue() < lowestValue) {
+	            			lowestValue = sr.getValue();
+	            		}
 					}
+	            	
+	            	ShopResponse sr = new ShopResponse(lowestValue);
 
+					context()
+						.actorSelection("/user/client")
+						.tell(sr, getSelf());
+	            	
 					clientCounter += 1;
 				})
 				.matchAny(o -> log.info("Received non-String message"))

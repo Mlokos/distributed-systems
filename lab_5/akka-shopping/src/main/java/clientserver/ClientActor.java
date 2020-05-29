@@ -17,6 +17,15 @@ public class ClientActor extends AbstractActor {
 						.actorSelection("/user/server_actor")
 						.tell(query, getSelf());
 				})
+				.match(ShopResponse.class, sr -> {
+					String response;
+	            	if(sr.getValue() == 10) {
+	            		response = "No response from shops";
+	            	} else {
+	            		response = "Best price: " + sr.getValue();
+	            	}
+	            	System.out.println(response);
+				})
 				.matchAny(o -> log.info("Received non-String message"))
 				.build();
 	}
