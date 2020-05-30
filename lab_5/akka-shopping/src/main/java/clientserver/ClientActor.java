@@ -24,7 +24,7 @@ public class ClientActor extends AbstractActor {
 	            	} else {
 	            		response = "Best price: " + sr.getValue();
 	            	}
-	            	System.out.println(response);
+	            	System.out.println("[" + sr.getOccurence() + "] " + response);
 				})
 				.matchAny(o -> log.info("Received non-String message"))
 				.build();

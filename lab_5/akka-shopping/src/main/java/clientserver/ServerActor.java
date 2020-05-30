@@ -16,7 +16,7 @@ public class ServerActor extends AbstractActor {
 	@Override
 	public AbstractActor.Receive createReceive() {
 		return receiveBuilder()
-				.match(String.class, query -> {					
+				.match(String.class, query -> {
 					/** Create unique actor */
 					context().actorOf(Props.create(ServerClientWorker.class), "server_client_worker" + clientCounter);
 					context().child("server_client_worker" + clientCounter).get().tell(query, getSender());
