@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "gen.grpc";
+option java_outer_classname = "WeatherSubscription";
+
+package src.main.proto;
+
+message Location {
+ 	int32 latitude = 1;
+ 	int32 longitude = 2;
+}
+
+/** REQUEST */
+message LocationList {
+    repeated Location location = 1;
+}
+
+message Date {
+    int32 year = 1;
+    int32 month = 2;
+    int32 day = 3;
+	int32 hour = 4;
+	int32 minute = 5;
+	int32 second = 6;
+}
+
+enum WeatherType {
+	RAINY = 0;
+    SUNNY = 1;
+    CLOUDY = 2;
+}
+
+/** RESPONSE */
+message Weather {
+	Location location = 1;
+	Date date = 2;
+	WeatherType weather = 3;
+}
+
+service Subscription {
+    rpc subscribeForWeather(LocationList) returns (stream Weather) {}
+}

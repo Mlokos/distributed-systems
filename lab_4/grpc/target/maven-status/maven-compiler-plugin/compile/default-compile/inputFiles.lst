@@ -1,0 +1,14 @@
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/WeatherType.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/Weather.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/LocationListOrBuilder.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/server/WeatherServer.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/WeatherSubscription.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/SubscriptionGrpc.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/LocationOrBuilder.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/LocationList.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/Date.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/sensor/WeatherSensor.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/server/WeatherService.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/DateOrBuilder.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/Location.java
+/home/michal/Documents/eclipse-workspace/grpc/grpc/src/main/java/gen/grpc/WeatherOrBuilder.java
