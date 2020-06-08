@@ -33,6 +33,9 @@ int main(int argc, char* argv[]) {
         adapter->add(servantBedroomRGBLamp, Ice::stringToIdentity("BedroomRGBLamp"));
         auto servantKitchenRGBLamp = std::make_shared<RGBLampImpl>();
         adapter->add(servantKitchenRGBLamp, Ice::stringToIdentity("KitchenRGBLamp"));
+
+        auto servantHeater = std::make_shared<HeaterImpl>();
+        adapter->add(servantHeater, Ice::stringToIdentity("Heater"));
         
         adapter->activate();
         ich->waitForShutdown();

@@ -1,5 +1,5 @@
 generateIceInterface:
-	slice2cpp ice-interface/Domotics.ice
+	slice2cpp resources/Domotics.ice
 
 generateIceServer:
 	c++ -I. -DICE_CPP11_MAPPING -c Server.cpp Domotics.cpp
