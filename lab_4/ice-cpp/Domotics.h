@@ -32,6 +32,7 @@
 #include <Ice/FactoryTableInit.h>
 #include <IceUtil/ScopedArray.h>
 #include <Ice/Optional.h>
+#include <Ice/ExceptionHelpers.h>
 #include <IceUtil/UndefSysMacros.h>
 
 #ifndef ICE_IGNORE_VERSION
@@ -66,6 +67,46 @@ class RGBLampPrx;
 
 namespace Domotics
 {
+
+class ImproperValue : public ::Ice::UserExceptionHelper<ImproperValue, ::Ice::UserException>
+{
+public:
+
+    virtual ~ImproperValue();
+
+    ImproperValue(const ImproperValue&) = default;
+
+    ImproperValue() = default;
+
+    /**
+     * One-shot constructor to initialize all data members.
+     */
+    ImproperValue(const ::std::string& message) :
+        message(message)
+    {
+    }
+
+    /**
+     * Obtains a tuple containing all of the exception's data members.
+     * @return The data members in a tuple.
+     */
+    std::tuple<const ::std::string&> ice_tuple() const
+    {
+        return std::tie(message);
+    }
+
+    /**
+     * Obtains the Slice type ID of this exception.
+     * @return The fully-scoped type ID.
+     */
+    static const ::std::string& ice_staticId();
+
+    ::std::string message;
+};
+
+/// \cond INTERNAL
+static ImproperValue _iceS_ImproperValue_init;
+/// \endcond
 
 struct colorRGB
 {
@@ -767,6 +808,15 @@ protected:
 namespace Ice
 {
 
+template<typename S>
+struct StreamReader<::Domotics::ImproperValue, S>
+{
+    static void read(S* istr, ::Domotics::ImproperValue& v)
+    {
+        istr->readAll(v.message);
+    }
+};
+
 template<>
 struct StreamableTraits<::Domotics::colorRGB>
 {
@@ -913,6 +963,46 @@ void _icePatchObjectPtr(RGBLampPtr&, const ::Ice::ObjectPtr&);
 
 namespace Domotics
 {
+
+class ImproperValue : public ::Ice::UserException
+{
+public:
+
+    ImproperValue() {}
+    /**
+     * One-shot constructor to initialize all data members.
+     */
+    explicit ImproperValue(const ::std::string& message);
+    virtual ~ImproperValue() throw();
+
+    /**
+     * Obtains the Slice type ID of this exception.
+     * @return The fully-scoped type ID.
+     */
+    virtual ::std::string ice_id() const;
+    /**
+     * Polymporphically clones this exception.
+     * @return A shallow copy of this exception.
+     */
+    virtual ImproperValue* ice_clone() const;
+    /**
+     * Throws this exception.
+     */
+    virtual void ice_throw() const;
+
+    ::std::string message;
+
+protected:
+
+    /// \cond STREAM
+    virtual void _writeImpl(::Ice::OutputStream*) const;
+    virtual void _readImpl(::Ice::InputStream*);
+    /// \endcond
+};
+
+/// \cond INTERNAL
+static ImproperValue _iceS_ImproperValue_init;
+/// \endcond
 
 struct colorRGB
 {
@@ -2021,6 +2111,30 @@ namespace Ice
 {
 
 template<>
+struct StreamableTraits< ::Domotics::ImproperValue>
+{
+    static const StreamHelperCategory helper = StreamHelperCategoryUserException;
+};
+
+template<typename S>
+struct StreamWriter< ::Domotics::ImproperValue, S>
+{
+    static void write(S* ostr, const ::Domotics::ImproperValue& v)
+    {
+        ostr->write(v.message);
+    }
+};
+
+template<typename S>
+struct StreamReader< ::Domotics::ImproperValue, S>
+{
+    static void read(S* istr, ::Domotics::ImproperValue& v)
+    {
+        istr->read(v.message);
+    }
+};
+
+template<>
 struct StreamableTraits< ::Domotics::colorRGB>
 {
     static const StreamHelperCategory helper = StreamHelperCategoryStruct;
@@ -2214,7 +2328,7 @@ newCallback_Heater_getTemperature(T* instance, void (T::*cb)(::Ice::Int, const C
  * Create a wrapper instance by calling ::Domotics::newCallback_Heater_setTemperature.
  */
 template<class T>
-class CallbackNC_Heater_setTemperature : public Callback_Heater_setTemperature_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_Heater_setTemperature : public Callback_Heater_setTemperature_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -2225,9 +2339,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_Heater_setTemperature(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        HeaterPrx proxy = HeaterPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setTemperature(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -2290,7 +2428,7 @@ newCallback_Heater_setTemperature(T* instance, void (T::*excb)(const ::Ice::Exce
  * Create a wrapper instance by calling ::Domotics::newCallback_Heater_setTemperature.
  */
 template<class T, typename CT>
-class Callback_Heater_setTemperature : public Callback_Heater_setTemperature_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_Heater_setTemperature : public Callback_Heater_setTemperature_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -2301,9 +2439,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_Heater_setTemperature(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        HeaterPrx proxy = HeaterPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setTemperature(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -2522,7 +2684,7 @@ newCallback_StaticCamera_getZoom(T* instance, void (T::*cb)(::Ice::Int, const CT
  * Create a wrapper instance by calling ::Domotics::newCallback_StaticCamera_setZoom.
  */
 template<class T>
-class CallbackNC_StaticCamera_setZoom : public Callback_StaticCamera_setZoom_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_StaticCamera_setZoom : public Callback_StaticCamera_setZoom_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -2533,9 +2695,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_StaticCamera_setZoom(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        StaticCameraPrx proxy = StaticCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setZoom(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -2598,7 +2784,7 @@ newCallback_StaticCamera_setZoom(T* instance, void (T::*excb)(const ::Ice::Excep
  * Create a wrapper instance by calling ::Domotics::newCallback_StaticCamera_setZoom.
  */
 template<class T, typename CT>
-class Callback_StaticCamera_setZoom : public Callback_StaticCamera_setZoom_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_StaticCamera_setZoom : public Callback_StaticCamera_setZoom_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -2609,9 +2795,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_StaticCamera_setZoom(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        StaticCameraPrx proxy = StaticCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setZoom(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -2830,7 +3040,7 @@ newCallback_StaticCamera_isRecording(T* instance, void (T::*cb)(bool, const CT&)
  * Create a wrapper instance by calling ::Domotics::newCallback_StaticCamera_setRecording.
  */
 template<class T>
-class CallbackNC_StaticCamera_setRecording : public Callback_StaticCamera_setRecording_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_StaticCamera_setRecording : public Callback_StaticCamera_setRecording_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -2841,9 +3051,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_StaticCamera_setRecording(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        StaticCameraPrx proxy = StaticCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setRecording(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -2906,7 +3140,7 @@ newCallback_StaticCamera_setRecording(T* instance, void (T::*excb)(const ::Ice::
  * Create a wrapper instance by calling ::Domotics::newCallback_StaticCamera_setRecording.
  */
 template<class T, typename CT>
-class Callback_StaticCamera_setRecording : public Callback_StaticCamera_setRecording_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_StaticCamera_setRecording : public Callback_StaticCamera_setRecording_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -2917,9 +3151,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_StaticCamera_setRecording(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        StaticCameraPrx proxy = StaticCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setRecording(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3138,7 +3396,7 @@ newCallback_DynamicCamera_getAngle(T* instance, void (T::*cb)(::Ice::Int, const 
  * Create a wrapper instance by calling ::Domotics::newCallback_DynamicCamera_setAngle.
  */
 template<class T>
-class CallbackNC_DynamicCamera_setAngle : public Callback_DynamicCamera_setAngle_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_DynamicCamera_setAngle : public Callback_DynamicCamera_setAngle_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -3149,9 +3407,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_DynamicCamera_setAngle(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        DynamicCameraPrx proxy = DynamicCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setAngle(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3214,7 +3496,7 @@ newCallback_DynamicCamera_setAngle(T* instance, void (T::*excb)(const ::Ice::Exc
  * Create a wrapper instance by calling ::Domotics::newCallback_DynamicCamera_setAngle.
  */
 template<class T, typename CT>
-class Callback_DynamicCamera_setAngle : public Callback_DynamicCamera_setAngle_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_DynamicCamera_setAngle : public Callback_DynamicCamera_setAngle_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -3225,9 +3507,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_DynamicCamera_setAngle(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        DynamicCameraPrx proxy = DynamicCameraPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setAngle(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3446,7 +3752,7 @@ newCallback_Lamp_getBrightness(T* instance, void (T::*cb)(::Ice::Int, const CT&)
  * Create a wrapper instance by calling ::Domotics::newCallback_Lamp_setBrightness.
  */
 template<class T>
-class CallbackNC_Lamp_setBrightness : public Callback_Lamp_setBrightness_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_Lamp_setBrightness : public Callback_Lamp_setBrightness_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -3457,9 +3763,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_Lamp_setBrightness(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        LampPrx proxy = LampPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setBrightness(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3522,7 +3852,7 @@ newCallback_Lamp_setBrightness(T* instance, void (T::*excb)(const ::Ice::Excepti
  * Create a wrapper instance by calling ::Domotics::newCallback_Lamp_setBrightness.
  */
 template<class T, typename CT>
-class Callback_Lamp_setBrightness : public Callback_Lamp_setBrightness_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_Lamp_setBrightness : public Callback_Lamp_setBrightness_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -3533,9 +3863,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_Lamp_setBrightness(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        LampPrx proxy = LampPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setBrightness(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3754,7 +4108,7 @@ newCallback_RGBLamp_getColor(T* instance, void (T::*cb)(const colorRGB&, const C
  * Create a wrapper instance by calling ::Domotics::newCallback_RGBLamp_setColor.
  */
 template<class T>
-class CallbackNC_RGBLamp_setColor : public Callback_RGBLamp_setColor_Base, public ::IceInternal::OnewayCallbackNC<T>
+class CallbackNC_RGBLamp_setColor : public Callback_RGBLamp_setColor_Base, public ::IceInternal::TwowayCallbackNC<T>
 {
 public:
 
@@ -3765,9 +4119,33 @@ public:
     typedef void (T::*Response)();
 
     CallbackNC_RGBLamp_setColor(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallbackNC<T>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallbackNC<T>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        RGBLampPrx proxy = RGBLampPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setColor(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::CallbackNC<T>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::CallbackNC<T>::_callback.get()->*_response)();
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**
@@ -3830,7 +4208,7 @@ newCallback_RGBLamp_setColor(T* instance, void (T::*excb)(const ::Ice::Exception
  * Create a wrapper instance by calling ::Domotics::newCallback_RGBLamp_setColor.
  */
 template<class T, typename CT>
-class Callback_RGBLamp_setColor : public Callback_RGBLamp_setColor_Base, public ::IceInternal::OnewayCallback<T, CT>
+class Callback_RGBLamp_setColor : public Callback_RGBLamp_setColor_Base, public ::IceInternal::TwowayCallback<T, CT>
 {
 public:
 
@@ -3841,9 +4219,33 @@ public:
     typedef void (T::*Response)(const CT&);
 
     Callback_RGBLamp_setColor(const TPtr& obj, Response cb, Exception excb, Sent sentcb)
-        : ::IceInternal::OnewayCallback<T, CT>(obj, cb, excb, sentcb)
+        : ::IceInternal::TwowayCallback<T, CT>(obj, cb != 0, excb, sentcb), _response(cb)
     {
     }
+
+    /// \cond INTERNAL
+    virtual void completed(const ::Ice::AsyncResultPtr& result) const
+    {
+        RGBLampPrx proxy = RGBLampPrx::uncheckedCast(result->getProxy());
+        try
+        {
+            proxy->end_setColor(result);
+        }
+        catch(const ::Ice::Exception& ex)
+        {
+            ::IceInternal::Callback<T, CT>::exception(result, ex);
+            return;
+        }
+        if(_response)
+        {
+            (::IceInternal::Callback<T, CT>::_callback.get()->*_response)(CT::dynamicCast(result->getCookie()));
+        }
+    }
+    /// \endcond
+
+private:
+
+    Response _response;
 };
 
 /**

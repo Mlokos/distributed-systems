@@ -13,6 +13,10 @@ public:
         return brightness;
     }
     void setBrightness(int _brightness, const Ice::Current&) override {
-        brightness = _brightness;
+        if(_brightness < 0 || _brightness > 100) {
+            throw Domotics::ImproperValue("Set a value between 0 and 100");
+        } else {
+            brightness = _brightness;
+        }
     }
 };

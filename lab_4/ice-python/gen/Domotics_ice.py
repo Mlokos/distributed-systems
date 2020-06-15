@@ -21,6 +21,25 @@ import Ice, IcePy
 _M_Domotics = Ice.openModule('Domotics')
 __name__ = 'Domotics'
 
+if 'ImproperValue' not in _M_Domotics.__dict__:
+    _M_Domotics.ImproperValue = Ice.createTempClass()
+    class ImproperValue(Ice.UserException):
+        def __init__(self, message=''):
+            self.message = message
+
+        def __str__(self):
+            return IcePy.stringifyException(self)
+
+        __repr__ = __str__
+
+        _ice_id = '::Domotics::ImproperValue'
+
+    _M_Domotics._t_ImproperValue = IcePy.defineException('::Domotics::ImproperValue', ImproperValue, (), False, None, (('message', (), IcePy._t_string, False, 0),))
+    ImproperValue._ice_type = _M_Domotics._t_ImproperValue
+
+    _M_Domotics.ImproperValue = ImproperValue
+    del ImproperValue
+
 _M_Domotics._t_Heater = IcePy.defineValue('::Domotics::Heater', Ice.Value, -1, (), False, True, None, ())
 
 if 'HeaterPrx' not in _M_Domotics.__dict__:
@@ -95,7 +114,7 @@ if 'HeaterPrx' not in _M_Domotics.__dict__:
     Heater._ice_type = _M_Domotics._t_HeaterDisp
 
     Heater._op_getTemperature = IcePy.Operation('getTemperature', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_int, False, 0), ())
-    Heater._op_setTemperature = IcePy.Operation('setTemperature', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, ())
+    Heater._op_setTemperature = IcePy.Operation('setTemperature', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
 
     _M_Domotics.Heater = Heater
     del Heater
@@ -204,9 +223,9 @@ if 'StaticCameraPrx' not in _M_Domotics.__dict__:
     StaticCamera._ice_type = _M_Domotics._t_StaticCameraDisp
 
     StaticCamera._op_getZoom = IcePy.Operation('getZoom', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_int, False, 0), ())
-    StaticCamera._op_setZoom = IcePy.Operation('setZoom', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, ())
+    StaticCamera._op_setZoom = IcePy.Operation('setZoom', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
     StaticCamera._op_isRecording = IcePy.Operation('isRecording', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_bool, False, 0), ())
-    StaticCamera._op_setRecording = IcePy.Operation('setRecording', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_bool, False, 0),), (), None, ())
+    StaticCamera._op_setRecording = IcePy.Operation('setRecording', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_bool, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
 
     _M_Domotics.StaticCamera = StaticCamera
     del StaticCamera
@@ -285,7 +304,7 @@ if 'DynamicCameraPrx' not in _M_Domotics.__dict__:
     DynamicCamera._ice_type = _M_Domotics._t_DynamicCameraDisp
 
     DynamicCamera._op_getAngle = IcePy.Operation('getAngle', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_int, False, 0), ())
-    DynamicCamera._op_setAngle = IcePy.Operation('setAngle', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, ())
+    DynamicCamera._op_setAngle = IcePy.Operation('setAngle', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
 
     _M_Domotics.DynamicCamera = DynamicCamera
     del DynamicCamera
@@ -364,7 +383,7 @@ if 'LampPrx' not in _M_Domotics.__dict__:
     Lamp._ice_type = _M_Domotics._t_LampDisp
 
     Lamp._op_getBrightness = IcePy.Operation('getBrightness', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), IcePy._t_int, False, 0), ())
-    Lamp._op_setBrightness = IcePy.Operation('setBrightness', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, ())
+    Lamp._op_setBrightness = IcePy.Operation('setBrightness', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), IcePy._t_int, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
 
     _M_Domotics.Lamp = Lamp
     del Lamp
@@ -546,7 +565,7 @@ if 'RGBLampPrx' not in _M_Domotics.__dict__:
     RGBLamp._ice_type = _M_Domotics._t_RGBLampDisp
 
     RGBLamp._op_getColor = IcePy.Operation('getColor', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (), (), ((), _M_Domotics._t_colorRGB, False, 0), ())
-    RGBLamp._op_setColor = IcePy.Operation('setColor', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), _M_Domotics._t_colorRGB, False, 0),), (), None, ())
+    RGBLamp._op_setColor = IcePy.Operation('setColor', Ice.OperationMode.Normal, Ice.OperationMode.Normal, False, None, (), (((), _M_Domotics._t_colorRGB, False, 0),), (), None, (_M_Domotics._t_ImproperValue,))
 
     _M_Domotics.RGBLamp = RGBLamp
     del RGBLamp

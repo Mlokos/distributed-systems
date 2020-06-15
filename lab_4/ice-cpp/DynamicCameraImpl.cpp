@@ -17,7 +17,11 @@ public:
         return zoom;
     }
     void setZoom(int _zoom, const Ice::Current&) override {
-        zoom = _zoom;
+        if(_zoom < 0 || _zoom > 10) {
+            throw Domotics::ImproperValue("Set a value between 0 and 10");
+        } else {
+            zoom = _zoom;
+        }
     }
 
     bool isRecording(const Ice::Current&) override {
@@ -31,6 +35,10 @@ public:
         return angle;
     }
     void setAngle(int _angle, const Ice::Current&) override {
-        angle = _angle;
+        if(_angle < 0 || _angle > 180) {
+            throw Domotics::ImproperValue("Set a value between 0 and 180");
+        } else {
+            angle = _angle;
+        }
     }
 };

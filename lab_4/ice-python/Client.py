@@ -97,8 +97,12 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'sz' or command == 'setZoom'):
                     UI.enter_value()
                     command = input()
-                    device.setZoom(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setZoom(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'sr' or command == 'setRecording'):
                     UI.enter_value()
                     command = input()
@@ -123,8 +127,12 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'sz' or command == 'setZoom'):
                     UI.enter_value()
                     command = input()
-                    device.setZoom(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setZoom(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'sr' or command == 'setRecording'):
                     UI.enter_value()
                     command = input()
@@ -133,8 +141,12 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'sp' or command == 'setPosition'):
                     UI.enter_value()
                     command = input()
-                    device.setAngle(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setAngle(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'm' or command == 'menu'):
                     UI.menu()
                 elif(command == 'q' or command == 'quit'):
@@ -148,8 +160,12 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'sb' or command == 'setBrightness'):
                     UI.enter_value()
                     command = input()
-                    device.setBrightness(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setBrightness(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'm' or command == 'menu'):
                     UI.menu()
                 elif(command == 'q' or command == 'quit'):
@@ -166,18 +182,26 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'sb' or command == 'setBrightness'):
                     UI.enter_value()
                     command = input()
-                    device.setBrightness(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setBrightness(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'sc' or command == 'setColor'):
                     UI.enter_value()
                     print("[RED] [GREEN] [BLUE]")
                     command = input()
                     colorList = command.split(' ')
-                    if len(colorList) == 3:
-                        device.setColor(Domotics.colorRGB(red=int(colorList[0]), green=int(colorList[1]), blue=int(colorList[2])))
-                        UI.change_confirmation()
-                    else:
-                        print("Type 3 numbers delimited by a space")
+                    try:
+                        if len(colorList) == 3:
+                            device.setColor(Domotics.colorRGB(red=int(colorList[0]), green=int(colorList[1]), blue=int(colorList[2])))
+                            UI.change_confirmation()
+                        else:
+                            print("Type 3 numbers delimited by a space")
+                            print("Type 'menu' (m) to go to menu")
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
                         print("Type 'menu' (m) to go to menu")
                 elif(command == 'm' or command == 'menu'):
                     UI.menu()
@@ -192,8 +216,12 @@ with Ice.initialize(sys.argv) as communicator:
                 elif(command == 'st' or command == 'setTemperature'):
                     UI.enter_value()
                     command = input()
-                    device.setTemperature(int(command))
-                    UI.change_confirmation()
+                    try:
+                        device.setTemperature(int(command))
+                        UI.change_confirmation()
+                    except Domotics.ImproperValue as e:
+                        print(e.message)
+                        print("Type 'menu' (m) to go to menu")
                 elif(command == 'm' or command == 'menu'):
                     UI.menu()
                 elif(command == 'q' or command == 'quit'):

@@ -15,7 +15,11 @@ public:
         return zoom;
     }
     void setZoom(int _zoom, const Ice::Current&) override {
-        zoom = _zoom;
+        if(_zoom < 0 || _zoom > 10) {
+            throw Domotics::ImproperValue("Set a value between 0 and 10");
+        } else {
+            zoom = _zoom;
+        }
     }
 
     bool isRecording(const Ice::Current&) override {

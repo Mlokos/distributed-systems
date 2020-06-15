@@ -1,9 +1,13 @@
 module Domotics {
+    exception ImproperValue {
+        string message;
+    };
+
     interface Heater {
         // int temperature;
 
         int getTemperature();
-        void setTemperature(int temperature);
+        void setTemperature(int temperature) throws ImproperValue;
     };
 
     interface StaticCamera {
@@ -11,24 +15,24 @@ module Domotics {
         // bool record;
 
         int getZoom();
-        void setZoom(int zoom);
+        void setZoom(int zoom) throws ImproperValue;
 
         bool isRecording();
-        void setRecording(bool record);
+        void setRecording(bool record) throws ImproperValue;
     };
 
     interface DynamicCamera extends StaticCamera {
         // int angle;
 
         int getAngle();
-        void setAngle(int angle);
+        void setAngle(int angle) throws ImproperValue;
     };
 
     interface Lamp {
         // int brightness;
 
         int getBrightness();
-        void setBrightness(int brightness);
+        void setBrightness(int brightness) throws ImproperValue;
     };
 
     struct colorRGB {
@@ -41,6 +45,6 @@ module Domotics {
         // struct color lamp_color;
 
         colorRGB getColor();
-        void setColor(colorRGB color);
+        void setColor(colorRGB color) throws ImproperValue;
     };
 }

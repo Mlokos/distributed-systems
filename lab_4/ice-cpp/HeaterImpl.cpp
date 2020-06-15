@@ -13,6 +13,10 @@ public:
         return temperature;
     }
     void setTemperature(int _temperature, const Ice::Current&) override {
-        temperature = _temperature;
+        if(_temperature < 15 || _temperature > 30) {
+            throw Domotics::ImproperValue("Set a value between 15 and 30");
+        } else {
+            temperature = _temperature;
+        }
     }
 };

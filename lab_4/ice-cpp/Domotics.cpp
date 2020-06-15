@@ -20,6 +20,7 @@
 #include <Ice/OutgoingAsync.h>
 #include <Ice/InputStream.h>
 #include <Ice/OutputStream.h>
+#include <Ice/LocalException.h>
 #include <IceUtil/PopDisableWarnings.h>
 
 #if defined(_MSC_VER)
@@ -46,6 +47,8 @@
 
 namespace
 {
+
+const ::IceInternal::DefaultUserExceptionFactoryInit<::Domotics::ImproperValue> iceC_Domotics_ImproperValue_init("::Domotics::ImproperValue");
 
 const ::std::string iceC_Domotics_Heater_ids[2] =
 {
@@ -144,6 +147,17 @@ const ::std::string iceC_Domotics_RGBLamp_ops[] =
 const ::std::string iceC_Domotics_RGBLamp_getColor_name = "getColor";
 const ::std::string iceC_Domotics_RGBLamp_setColor_name = "setColor";
 
+}
+
+Domotics::ImproperValue::~ImproperValue()
+{
+}
+
+const ::std::string&
+Domotics::ImproperValue::ice_staticId()
+{
+    static const ::std::string typeId = "::Domotics::ImproperValue";
+    return typeId;
 }
 
 bool
@@ -717,12 +731,26 @@ Domotics::HeaterPrx::_iceI_getTemperature(const ::std::shared_ptr<::IceInternal:
 void
 Domotics::HeaterPrx::_iceI_setTemperature(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, int iceP_temperature, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_Heater_setTemperature_name);
     outAsync->invoke(iceC_Domotics_Heater_setTemperature_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_temperature);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -755,12 +783,26 @@ Domotics::StaticCameraPrx::_iceI_getZoom(const ::std::shared_ptr<::IceInternal::
 void
 Domotics::StaticCameraPrx::_iceI_setZoom(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, int iceP_zoom, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_StaticCamera_setZoom_name);
     outAsync->invoke(iceC_Domotics_StaticCamera_setZoom_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_zoom);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -779,12 +821,26 @@ Domotics::StaticCameraPrx::_iceI_isRecording(const ::std::shared_ptr<::IceIntern
 void
 Domotics::StaticCameraPrx::_iceI_setRecording(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, bool iceP_record, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_StaticCamera_setRecording_name);
     outAsync->invoke(iceC_Domotics_StaticCamera_setRecording_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_record);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -817,12 +873,26 @@ Domotics::DynamicCameraPrx::_iceI_getAngle(const ::std::shared_ptr<::IceInternal
 void
 Domotics::DynamicCameraPrx::_iceI_setAngle(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, int iceP_angle, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_DynamicCamera_setAngle_name);
     outAsync->invoke(iceC_Domotics_DynamicCamera_setAngle_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_angle);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -855,12 +925,26 @@ Domotics::LampPrx::_iceI_getBrightness(const ::std::shared_ptr<::IceInternal::Ou
 void
 Domotics::LampPrx::_iceI_setBrightness(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, int iceP_brightness, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_Lamp_setBrightness_name);
     outAsync->invoke(iceC_Domotics_Lamp_setBrightness_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_brightness);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -893,12 +977,26 @@ Domotics::RGBLampPrx::_iceI_getColor(const ::std::shared_ptr<::IceInternal::Outg
 void
 Domotics::RGBLampPrx::_iceI_setColor(const ::std::shared_ptr<::IceInternal::OutgoingAsyncT<void>>& outAsync, const colorRGB& iceP_color, const ::Ice::Context& context)
 {
+    _checkTwowayOnly(iceC_Domotics_RGBLamp_setColor_name);
     outAsync->invoke(iceC_Domotics_RGBLamp_setColor_name, ::Ice::OperationMode::Normal, ::Ice::FormatType::DefaultFormat, context,
         [&](::Ice::OutputStream* ostr)
         {
             ostr->writeAll(iceP_color);
         },
-        nullptr);
+        [](const ::Ice::UserException& ex)
+        {
+            try
+            {
+                ex.ice_throw();
+            }
+            catch(const ImproperValue&)
+            {
+                throw;
+            }
+            catch(const ::Ice::UserException&)
+            {
+            }
+        });
 }
 /// \endcond
 
@@ -950,6 +1048,59 @@ const ::std::string iceC_Domotics_RGBLamp_getColor_name = "getColor";
 const ::std::string iceC_Domotics_RGBLamp_setColor_name = "setColor";
 
 }
+
+namespace
+{
+
+const ::IceInternal::DefaultUserExceptionFactoryInit< ::Domotics::ImproperValue> iceC_Domotics_ImproperValue_init("::Domotics::ImproperValue");
+
+}
+
+Domotics::ImproperValue::ImproperValue(const ::std::string& message) :
+    ::Ice::UserException(),
+    message(message)
+{
+}
+
+Domotics::ImproperValue::~ImproperValue() throw()
+{
+}
+
+::std::string
+Domotics::ImproperValue::ice_id() const
+{
+    return "::Domotics::ImproperValue";
+}
+
+Domotics::ImproperValue*
+Domotics::ImproperValue::ice_clone() const
+{
+    return new ImproperValue(*this);
+}
+
+void
+Domotics::ImproperValue::ice_throw() const
+{
+    throw *this;
+}
+
+/// \cond STREAM
+void
+Domotics::ImproperValue::_writeImpl(::Ice::OutputStream* ostr) const
+{
+    ostr->startSlice("::Domotics::ImproperValue", -1, true);
+    ::Ice::StreamWriter< ImproperValue, ::Ice::OutputStream>::write(ostr, *this);
+    ostr->endSlice();
+}
+
+void
+Domotics::ImproperValue::_readImpl(::Ice::InputStream* istr)
+{
+    istr->startSlice();
+    ::Ice::StreamReader< ImproperValue, ::Ice::InputStream>::read(istr, *this);
+    istr->endSlice();
+}
+/// \endcond
 
 /// \cond INTERNAL
 ::IceProxy::Ice::Object* ::IceProxy::Domotics::upCast(Heater* p) { return p; }
@@ -1014,6 +1165,7 @@ IceProxy::Domotics::Heater::end_getTemperature(const ::Ice::AsyncResultPtr& resu
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::Heater::_iceI_begin_setTemperature(::Ice::Int iceP_temperature, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_Heater_setTemperature_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_Heater_setTemperature_name, del, cookie, sync);
     try
     {
@@ -1033,7 +1185,23 @@ IceProxy::Domotics::Heater::_iceI_begin_setTemperature(::Ice::Int iceP_temperatu
 void
 IceProxy::Domotics::Heater::end_setTemperature(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_Heater_setTemperature_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_Heater_setTemperature_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 /// \cond INTERNAL
@@ -1113,6 +1281,7 @@ IceProxy::Domotics::StaticCamera::end_getZoom(const ::Ice::AsyncResultPtr& resul
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::StaticCamera::_iceI_begin_setZoom(::Ice::Int iceP_zoom, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_StaticCamera_setZoom_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_StaticCamera_setZoom_name, del, cookie, sync);
     try
     {
@@ -1132,7 +1301,23 @@ IceProxy::Domotics::StaticCamera::_iceI_begin_setZoom(::Ice::Int iceP_zoom, cons
 void
 IceProxy::Domotics::StaticCamera::end_setZoom(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_StaticCamera_setZoom_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_StaticCamera_setZoom_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 ::Ice::AsyncResultPtr
@@ -1178,6 +1363,7 @@ IceProxy::Domotics::StaticCamera::end_isRecording(const ::Ice::AsyncResultPtr& r
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::StaticCamera::_iceI_begin_setRecording(bool iceP_record, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_StaticCamera_setRecording_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_StaticCamera_setRecording_name, del, cookie, sync);
     try
     {
@@ -1197,7 +1383,23 @@ IceProxy::Domotics::StaticCamera::_iceI_begin_setRecording(bool iceP_record, con
 void
 IceProxy::Domotics::StaticCamera::end_setRecording(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_StaticCamera_setRecording_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_StaticCamera_setRecording_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 /// \cond INTERNAL
@@ -1277,6 +1479,7 @@ IceProxy::Domotics::DynamicCamera::end_getAngle(const ::Ice::AsyncResultPtr& res
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::DynamicCamera::_iceI_begin_setAngle(::Ice::Int iceP_angle, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_DynamicCamera_setAngle_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_DynamicCamera_setAngle_name, del, cookie, sync);
     try
     {
@@ -1296,7 +1499,23 @@ IceProxy::Domotics::DynamicCamera::_iceI_begin_setAngle(::Ice::Int iceP_angle, c
 void
 IceProxy::Domotics::DynamicCamera::end_setAngle(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_DynamicCamera_setAngle_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_DynamicCamera_setAngle_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 /// \cond INTERNAL
@@ -1376,6 +1595,7 @@ IceProxy::Domotics::Lamp::end_getBrightness(const ::Ice::AsyncResultPtr& result)
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::Lamp::_iceI_begin_setBrightness(::Ice::Int iceP_brightness, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_Lamp_setBrightness_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_Lamp_setBrightness_name, del, cookie, sync);
     try
     {
@@ -1395,7 +1615,23 @@ IceProxy::Domotics::Lamp::_iceI_begin_setBrightness(::Ice::Int iceP_brightness, 
 void
 IceProxy::Domotics::Lamp::end_setBrightness(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_Lamp_setBrightness_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_Lamp_setBrightness_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 /// \cond INTERNAL
@@ -1475,6 +1711,7 @@ IceProxy::Domotics::RGBLamp::end_getColor(const ::Ice::AsyncResultPtr& result)
 ::Ice::AsyncResultPtr
 IceProxy::Domotics::RGBLamp::_iceI_begin_setColor(const ::Domotics::colorRGB& iceP_color, const ::Ice::Context& context, const ::IceInternal::CallbackBasePtr& del, const ::Ice::LocalObjectPtr& cookie, bool sync)
 {
+    _checkTwowayOnly(iceC_Domotics_RGBLamp_setColor_name, sync);
     ::IceInternal::OutgoingAsyncPtr result = new ::IceInternal::CallbackOutgoing(this, iceC_Domotics_RGBLamp_setColor_name, del, cookie, sync);
     try
     {
@@ -1494,7 +1731,23 @@ IceProxy::Domotics::RGBLamp::_iceI_begin_setColor(const ::Domotics::colorRGB& ic
 void
 IceProxy::Domotics::RGBLamp::end_setColor(const ::Ice::AsyncResultPtr& result)
 {
-    _end(result, iceC_Domotics_RGBLamp_setColor_name);
+    ::Ice::AsyncResult::_check(result, this, iceC_Domotics_RGBLamp_setColor_name);
+    if(!result->_waitForResponse())
+    {
+        try
+        {
+            result->_throwUserException();
+        }
+        catch(const ::Domotics::ImproperValue&)
+        {
+            throw;
+        }
+        catch(const ::Ice::UserException& ex)
+        {
+            throw ::Ice::UnknownUserException(__FILE__, __LINE__, ex.ice_id());
+        }
+    }
+    result->_readEmptyParams();
 }
 
 /// \cond INTERNAL
